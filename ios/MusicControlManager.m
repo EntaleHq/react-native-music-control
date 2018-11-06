@@ -286,6 +286,10 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
 - (void)updateArtworkIfNeeded:(id)artworkUrl
 {
     if (artworkUrl != nil) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // clear old artwork
+            [self setNowPlayingArtwork:nil];
+        });
         self.artworkUrl = artworkUrl;
 
         // Custom handling of artwork in another thread, will be loaded async
@@ -323,16 +327,20 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
 
                     // Check if URL wasn't changed in the meantime
                     if ([artworkUrl isEqual:self.artworkUrl]) {
-                        MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
-                        MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithImage: image];
-                        NSMutableDictionary *mediaDict = (center.nowPlayingInfo != nil) ? [[NSMutableDictionary alloc] initWithDictionary: center.nowPlayingInfo] : [NSMutableDictionary dictionary];
-                        [mediaDict setValue:artwork forKey:MPMediaItemPropertyArtwork];
-                        center.nowPlayingInfo = mediaDict;
+                        [self setNowPlayingArtwork:image];
                     }
                 });
             }
         });
     }
+}
+
+- (void)setNowPlayingArtwork:(nullable UIImage *)image {
+    MPNowPlayingInfoCenter *center = [MPNowPlayingInfoCenter defaultCenter];
+    MPMediaItemArtwork *artwork = image ? [[MPMediaItemArtwork alloc] initWithImage:image] : nil;
+    NSMutableDictionary *mediaDict = (center.nowPlayingInfo != nil) ? [[NSMutableDictionary alloc] initWithDictionary: center.nowPlayingInfo] : [NSMutableDictionary dictionary];
+    mediaDict[MPMediaItemPropertyArtwork] = artwork;
+    center.nowPlayingInfo = mediaDict;
 }
 
 - (void)audioHardwareRouteChanged:(NSNotification *)notification {
