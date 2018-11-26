@@ -360,11 +360,11 @@ RCT_EXPORT_METHOD(observeAudioInterruptions:(BOOL) observe){
 
     if (interruptionType == AVAudioSessionInterruptionTypeBegan) {
         // Playback interrupted by an incoming phone call.
-        [self sendEvent:@"pause"];
+        [self sendEvent:@"playbackInterrupted"];
     }
     if (interruptionType == AVAudioSessionInterruptionTypeEnded &&
            interruptionOption == AVAudioSessionInterruptionOptionShouldResume) {
-        [self sendEvent:@"play"];
+        [self sendEvent:@"playbackInterruptionEnded"];
     }
 }
 
